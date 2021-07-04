@@ -1,0 +1,21 @@
+.Side {
+  width: 100%;
+}
+.SideBody {
+  display: flex;
+}
+.SideBody.BuySide {
+  flex-direction: column;
+}
+
+@media only screen and (max-width: 600px) {
+  .SideBody.SellSide {
+    flex-direction: column-reverse;
+  }
+}
+
+@media only screen and (min-width: 600px) {
+  .SideBody.SellSide {
+    flex-direction: column;
+  }
+}

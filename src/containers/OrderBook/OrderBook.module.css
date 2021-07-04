@@ -1,0 +1,18 @@
+
+@media only screen and (max-width: 600px) {
+  .OrderBook {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+}
+
+@media only screen and (min-width: 600px) {
+  .OrderBook {
+    display: flex;
+    flex-direction: row;
+  }
+}
+
+.OrderBook {
+  width: 100%;
+}
