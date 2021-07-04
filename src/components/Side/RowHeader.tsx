@@ -13,6 +13,7 @@ export const RowHeader: React.FC<RowHeaderProps> = ({ side }) => {
       className={
         classnames(
           styles.Row,
+          styles.Header,
           {
             [styles.BuySide]: side ==='buy',
             [styles.SellSide]: side ==='sell',

@@ -1,3 +1,4 @@
+import React from 'react'
 import classnames from 'classnames'
 
 import { Row } from './Row'
@@ -10,13 +11,16 @@ type SideProps = {
 }
 
 const mockData = [
-  [47377.50, 13056, 245982],
-  [47377.00, 13056, 245982],
-  [47376.50, 13056, 245982],
-  [47376.00, 13056, 245982]
+  [47377.50, 13056, 1],
+  [47377.00, 13056, 2],
+  [47376.50, 13056, 3],
+  [47376.00, 13056, 4]
 ]
 
 export const Side: React.FC<SideProps> = ({ side }) => {
+
+  const maxOrders = Math.max(...mockData.map(([,,total]) => total))
+
   return (
     <div className={styles.Side}>
       <RowHeader side={side} />
@@ -38,6 +42,7 @@ export const Side: React.FC<SideProps> = ({ side }) => {
             price={price}
             size={size}
             total={total}
+            maxOrders={maxOrders}
           />) }
       </div>
     </div>

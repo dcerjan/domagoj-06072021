@@ -10,23 +10,26 @@ type RowProps = {
   price: number
   size: number
   total: number
+  maxOrders: number
 }
 
 const calcCellStyles = (side: RowProps['side'], style: string) =>
   classnames(
     styles.Cell,
     {
-      [styles.BuySide]: side === 'buy',
-      [styles.SelSide]: side === 'sell',
+      [styles.BuySide]: side ==='buy',
+      [styles.SellSide]: side ==='sell',
     },
     style,
   )
 
-export const Row: React.FC<RowProps> = ({ price, size, total, side }) => {
+export const Row: React.FC<RowProps> = ({ price, size, total, maxOrders, side }) => {
 
   const localePrice = React.useMemo(() => LocaleCurrencyFormatter.format(price), [price])
   const localeSize = React.useMemo(() => LocaleAmountFormatter.format(size), [size])
   const localeTotal = React.useMemo(() => LocaleAmountFormatter.format(total), [total])
+
+  const barSize = `${100 * total / maxOrders}%`
 
   return (
     <div
@@ -39,6 +42,18 @@ export const Row: React.FC<RowProps> = ({ price, size, total, side }) => {
         }
       )
     }>
+      <div
+        className={
+          classnames(
+            styles.Bar,
+            {
+              [styles.BuySide]: side === 'buy',
+              [styles.SellSide]: side === 'sell',
+            }
+          )
+        }
+        style={{ width: barSize }}
+      />
       <div className={calcCellStyles(side, styles.Total)}>{localeTotal}</div>
       <div className={calcCellStyles(side, styles.Size)}>{localeSize}</div>
       <div className={calcCellStyles(side, styles.Price)}>{localePrice}</div>

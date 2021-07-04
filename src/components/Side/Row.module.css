@@ -1,32 +1,52 @@
 .Row {
   display: flex;
   width: 100%;
+  position: relative;
 }
 @media only screen and (max-width: 600px) {
-  .Row.BuySide {
-    background-color: red;
-    flex-direction: row-reverse;
-  }
+  .Row.BuySide { flex-direction: row-reverse }
 }
-
 @media only screen and (min-width: 600px) {
-  .Row.BuySide {
-    background-color: red;
-    flex-direction: row;
-  }
+  .Row.BuySide { flex-direction: row }
 }
 .Row.SellSide {
-  background-color: green;
   flex-direction: row-reverse;
+}
+
+@media only screen and (max-width: 600px) {
+  .Header.BuySide { opacity: 0; }
 }
 
 .Cell {
   display: flex;
   justify-content: flex-end;
-  margin: 4px 8px 4px 8px;
+  margin: 4px 32px 4px 8px;
   text-transform: uppercase;
+  z-index: 2;
 }
-.Cell.SellSide { justify-content: flex-start; }
 .Price { width: 40%; max-width: 40%; }
+.Price.BuySide { color: #F74543; }
+.Price.SellSide { color: #0CBF84; }
 .Size { width: 30%; max-width: 30%; }
 .Total { width: 30%; max-width: 30%; }
+
+.Bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+}
+.Bar.BuySide {
+  right: 0;
+  background-color: #3E212C;
+}
+@media only screen and (max-width: 600px) {
+  .Bar.SellSide { right: 0 }
+}
+
+@media only screen and (min-width: 600px) {
+  .Bar.SellSide { left: 0 }
+}
+.Bar.SellSide {
+  background-color: #123839;
+}
