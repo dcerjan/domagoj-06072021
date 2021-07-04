@@ -1,0 +1,23 @@
+.IconButton {
+  color: inherit;
+  padding: 10px 20px 10px 20px;
+  margin: 10px;
+  border-radius: 7px;
+  outline: none;
+  border: none;
+}
+
+.IconButton > i {
+  margin-right: 4px;
+}
+
+.IconButton:hover {
+  opacity: 0.8;
+}
+
+.IconButton:active {
+  transform: scale(0.95);
+}
+
+.IconButton.Regular { background-color: #5741D9 }
+.IconButton.Danger { background-color: #B91D1D }
