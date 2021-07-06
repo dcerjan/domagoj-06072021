@@ -1,6 +1,7 @@
 import React from 'react'
 import classnames from 'classnames'
 
+import { BookVM } from '../../domain/BookVM'
 import { Row } from './Row'
 import { RowHeader } from './RowHeader'
 
@@ -8,18 +9,13 @@ import styles from './Side.module.css'
 
 type SideProps = {
   side: 'buy' | 'sell'
+  orders?: BookVM
+  maxOrders: number
 }
 
-const mockData = [
-  [47377.50, 13056, 1],
-  [47377.00, 13056, 2],
-  [47376.50, 13056, 3],
-  [47376.00, 13056, 4]
-]
+const EMPTY_ORDERS: BookVM = []
 
-export const Side: React.FC<SideProps> = ({ side }) => {
-
-  const maxOrders = Math.max(...mockData.map(([,,total]) => total))
+export const Side: React.FC<SideProps> = ({ side, maxOrders, orders = EMPTY_ORDERS }) => {
 
   return (
     <div className={styles.Side}>
@@ -35,10 +31,10 @@ export const Side: React.FC<SideProps> = ({ side }) => {
           )
         }
       >
-        { mockData.map(([price, size, total]) =>
+        { orders.map(([price, size, total], index) =>
           <Row
             side={side}
-            key={`${price}`}
+            key={`${price}:${index}`}
             price={price}
             size={size}
             total={total}

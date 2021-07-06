@@ -1,1 +1,1 @@
-export type BookVM = [price: number, size: number][]
+export type BookVM = [price: number, size: number, total: number][]
