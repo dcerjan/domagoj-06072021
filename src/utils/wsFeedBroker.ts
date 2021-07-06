@@ -11,6 +11,7 @@ export const createWsFeedBroker = (
   url: string,
   onMessage: (message: any) => void,
   onError: (error: any) => void,
+  onStatusChange: (status: boolean) => void,
 ): WsFeedBroker => {
   let subscriptions: string[] = []
   let connected = false
@@ -29,6 +30,8 @@ export const createWsFeedBroker = (
       reconnectTimeout = undefined
 
       socket?.send(JSON.stringify({ event: 'subscribe', feed: 'book_ui_1', product_ids: subscriptions }))
+
+      onStatusChange(true)
     })
 
     socket.addEventListener('error', (event) => {
@@ -38,6 +41,7 @@ export const createWsFeedBroker = (
         reconnectTimeout = window.setTimeout(open, WEBSOCKET_RECONNECT_TIMEOUT)
       }
       onError(event)
+      onStatusChange(false)
     })
 
     socket.addEventListener('close', () => {
@@ -46,6 +50,7 @@ export const createWsFeedBroker = (
       if (reconnectTimeout != null) {
         window.clearTimeout(reconnectTimeout)
       }
+      onStatusChange(false)
     })
 
     socket.addEventListener('message', (messageEvent) => {

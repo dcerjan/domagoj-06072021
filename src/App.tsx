@@ -1,22 +1,30 @@
-import React from 'react';
+import React from 'react'
+import { useObservable } from 'react-use'
 
 import './App.css';
 import { IconButton } from './components/IconButton';
 
 import { OrderBook } from './containers/OrderBook';
 import { KnownProduct } from './domain/KnownProduct';
-import { closeFeedIntent$ } from './streams/feed/intent$';
+import { closeFeedIntent$, openFeedIntent$ } from './streams/feed/intent$';
+import { feedStatus$ } from './streams/feed/orderBookFeed$';
 
 function App() {
   const [productId, setProductId] = React.useState<KnownProduct>('PI_XBTUSD')
+
+  const status = useObservable(feedStatus$, false)
 
   const toggleFeed = React.useCallback(() => {
     setProductId(productId === 'PI_XBTUSD' ? 'PI_ETHUSD' : 'PI_XBTUSD')
   }, [productId])
 
-  const killFeed = React.useCallback(() => {
-    closeFeedIntent$.next()
-  }, [])
+  const killOrRestartFeed = React.useCallback(() => {
+    if (status) {
+      closeFeedIntent$.next()
+    } else {
+      openFeedIntent$.next()
+    }
+  }, [status])
 
   return (
     <div className="App">
@@ -30,7 +38,7 @@ function App() {
         <IconButton
           icon='fa-exclamation-circle'
           label='Kill Feed'
-          onClick={killFeed}
+          onClick={killOrRestartFeed}
           color='danger'
         />
       </div>

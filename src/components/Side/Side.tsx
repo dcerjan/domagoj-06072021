@@ -1,6 +1,7 @@
 import React from 'react'
 import classnames from 'classnames'
 
+import { MAX_LEVELS } from '../../streams/feed/constants'
 import { BookVM } from '../../domain/BookVM'
 import { Row } from './Row'
 import { RowHeader } from './RowHeader'
@@ -31,7 +32,7 @@ export const Side: React.FC<SideProps> = ({ side, maxOrders, orders = EMPTY_ORDE
           )
         }
       >
-        { orders.map(([price, size, total], index) =>
+        { orders.slice(0, MAX_LEVELS).map(([price, size, total], index) =>
           <Row
             side={side}
             key={`${price}:${index}`}

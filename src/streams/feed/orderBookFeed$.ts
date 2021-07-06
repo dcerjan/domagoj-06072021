@@ -1,10 +1,10 @@
-import { Subject } from 'rxjs'
-import { map, sampleTime, scan, shareReplay } from 'rxjs/operators'
+import { BehaviorSubject, Subject } from 'rxjs'
+import { map, sampleTime, scan, shareReplay, tap } from 'rxjs/operators'
 
 import { BookVM } from '../../domain/BookVM'
 import { KnownProduct } from '../../domain/KnownProduct'
 import { createWsFeedBroker } from '../../utils/wsFeedBroker'
-import { WS_ORDER_FEED_ENDPOINT } from './constants'
+import { MAX_LEVELS, WS_ORDER_FEED_ENDPOINT } from './constants'
 import { feedError$ } from './feedError$'
 import {
   closeFeedIntent$,
@@ -14,6 +14,7 @@ import {
 } from './intent$'
 
 const feedMessage$ = new Subject<MessageEvent>()
+export const feedStatus$ = new BehaviorSubject<boolean>(false)
 
 export const bindOrderBookFeed = (
   subscribe$: typeof subscribeToOrderBookFeedIntent$,
@@ -21,12 +22,14 @@ export const bindOrderBookFeed = (
   close$: typeof closeFeedIntent$,
   open$: typeof openFeedIntent$,
   message$: typeof feedMessage$,
+  status$: typeof feedStatus$,
   error$: typeof feedError$,
 ) => {
   const broker = createWsFeedBroker(
     WS_ORDER_FEED_ENDPOINT,
     (message) => message$.next(message),
-    (error) => error$.next(error)
+    (error) => error$.next(error),
+    (status) => status$.next(status),
   )
 
   subscribe$.subscribe((channel) => broker.subscribe(channel))
@@ -41,6 +44,7 @@ bindOrderBookFeed(
   closeFeedIntent$,
   openFeedIntent$,
   feedMessage$,
+  feedStatus$,
   feedError$,
 )
 
@@ -116,18 +120,25 @@ export const createOrderBookFeed = (source$: Subject<MessageEvent>) => {
         return { type: 'error' as const, error }
       }
     }),
+    // Doing side-effects in a pipe might be looked down upon but then again,
+    // this is not Haskell, write the latest error onto the errorFeed$
+    tap((message) => {
+      if (message.type === 'error') {
+        feedError$.next(message.error)
+      }
+    }),
     scan((state, message) => {
       switch (message.type) {
         case 'snapshot': return {
           productId: message.productId,
-          asks: calcLevelsWithTotals(take(message.asks, 15).sort(ltOrder)),
-          bids: calcLevelsWithTotals(take(message.bids, 15).sort(gtOrder)),
+          asks: calcLevelsWithTotals(take(message.asks, MAX_LEVELS).sort(ltOrder)),
+          bids: calcLevelsWithTotals(take(message.bids, MAX_LEVELS).sort(gtOrder)),
         }
         case 'delta': {
           return {
             ...state,
-            asks: calcLevelsWithTotals(take(mergeLevels(state.asks, message.asks), 15).sort(ltOrder)),
-            bids: calcLevelsWithTotals(take(mergeLevels(state.bids, message.bids), 15).sort(gtOrder)),
+            asks: calcLevelsWithTotals(take(mergeLevels(state.asks, message.asks), MAX_LEVELS).sort(ltOrder)),
+            bids: calcLevelsWithTotals(take(mergeLevels(state.bids, message.bids), MAX_LEVELS).sort(gtOrder)),
           }
         }
         default: return state
