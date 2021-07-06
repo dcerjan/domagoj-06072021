@@ -2,7 +2,8 @@ import React from 'react'
 import classnames from 'classnames'
 
 import { MAX_LEVELS } from '../../streams/feed/constants'
-import { BookVM } from '../../domain/BookVM'
+import { calcLevelsWithTotals, groupBy, take, Levels } from '../../domain/Levels'
+import { KnownProduct } from '../../domain/KnownProduct'
 import { Row } from './Row'
 import { RowHeader } from './RowHeader'
 
@@ -10,13 +11,16 @@ import styles from './Side.module.css'
 
 type SideProps = {
   side: 'buy' | 'sell'
-  orders?: BookVM
-  maxOrders: number
+  levels?: Levels
+  product: KnownProduct
+  group: number
 }
 
-const EMPTY_ORDERS: BookVM = []
+const EMPTY_LEVELS: Levels = []
 
-export const Side: React.FC<SideProps> = ({ side, maxOrders, orders = EMPTY_ORDERS }) => {
+export const Side: React.FC<SideProps> = ({ side, group, product, levels = EMPTY_LEVELS }) => {
+  const groupedLevels = calcLevelsWithTotals(groupBy(levels, product, group))
+  const maxOrders = groupedLevels[groupedLevels.length - 1][2]
 
   return (
     <div className={styles.Side}>
@@ -32,7 +36,7 @@ export const Side: React.FC<SideProps> = ({ side, maxOrders, orders = EMPTY_ORDE
           )
         }
       >
-        { orders.slice(0, MAX_LEVELS).map(([price, size, total], index) =>
+        { take(groupedLevels, MAX_LEVELS).map(([price, size, total], index) =>
           <Row
             side={side}
             key={`${price}:${index}`}

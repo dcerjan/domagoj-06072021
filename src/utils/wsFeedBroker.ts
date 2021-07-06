@@ -3,6 +3,7 @@ type WsFeedBroker = {
   unsubscribe: (channel: string) => void
   close: () => void
   open: () => void
+  simulateError: (errorMessage: string) => void
 }
 
 const WEBSOCKET_RECONNECT_TIMEOUT = 1000
@@ -25,16 +26,16 @@ export const createWsFeedBroker = (
 
     socket = new WebSocket(url)
 
-    socket.addEventListener('open', () => {
+    const handleOpen = () => {
       connected = true
       reconnectTimeout = undefined
 
       socket?.send(JSON.stringify({ event: 'subscribe', feed: 'book_ui_1', product_ids: subscriptions }))
 
       onStatusChange(true)
-    })
+    }
 
-    socket.addEventListener('error', (event) => {
+    const handleError = (event: Event) => {
       connected = false
       socket = undefined
       if (reconnectTimeout != null) {
@@ -42,20 +43,25 @@ export const createWsFeedBroker = (
       }
       onError(event)
       onStatusChange(false)
-    })
+    }
 
-    socket.addEventListener('close', () => {
+    const handleMessage = (messageEvent: MessageEvent) => {
+      onMessage(messageEvent)
+    }
+
+    const handleClose = () => {
       socket = undefined
       connected = false
       if (reconnectTimeout != null) {
         window.clearTimeout(reconnectTimeout)
       }
       onStatusChange(false)
-    })
+    }
 
-    socket.addEventListener('message', (messageEvent) => {
-      onMessage(messageEvent)
-    })
+    socket.addEventListener('open', handleOpen)
+    socket.addEventListener('error', handleError)
+    socket.addEventListener('close', handleClose)
+    socket.addEventListener('message', handleMessage)
   }
 
   const close = () => {
@@ -88,5 +94,13 @@ export const createWsFeedBroker = (
 
     open,
     close,
+
+    simulateError: (errorMessage: string) => {
+      console.error(errorMessage)
+      // Simulate connection being closed due to an error
+      close()
+      // And invoke the error handler to wrap up the simulation
+      onError(new Error(errorMessage))
+    }
   }
 }

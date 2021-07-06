@@ -2,10 +2,15 @@ import React from 'react';
 
 import styles from './Select.module.css'
 
+export type SelectOption = {
+  label: string
+  value: string
+}
+
 type SelectProps = {
   value: string | null
   onSelect: (value: string) => void
-  options: { label: string, value: string }[]
+  options: SelectOption[]
 }
 
 export const Select: React.FC<SelectProps> = ({ options, value, onSelect }) => {
