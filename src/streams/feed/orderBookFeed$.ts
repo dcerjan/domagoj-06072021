@@ -1,5 +1,5 @@
-import { BehaviorSubject, Subject } from 'rxjs'
-import { map, sampleTime, scan, shareReplay, tap, withLatestFrom } from 'rxjs/operators'
+import { BehaviorSubject, connectable, Subject } from 'rxjs'
+import { map, sampleTime, scan, tap } from 'rxjs/operators'
 
 import {
   Levels,
@@ -58,8 +58,8 @@ const NOOP = {
   type: 'noop'
 } as const
 
-export const createOrderBookFeed = (source$: Subject<MessageEvent>) => {
-  const sink$ = source$.pipe(
+export const createOrderBookFeed = (source$: Subject<MessageEvent>, error$: typeof feedError$, ) => {
+  const sink$ = connectable(source$.pipe(
     map((message: MessageEvent) => {
       try {
         const data = JSON.parse(message.data)
@@ -88,11 +88,10 @@ export const createOrderBookFeed = (source$: Subject<MessageEvent>) => {
     // this is not Haskell, write the latest error onto the errorFeed$
     tap((message) => {
       if (message.type === 'error') {
-        feedError$.next(message.error)
+        error$.next(message.error)
       }
     }),
-    withLatestFrom(selectGrouping$),
-    scan((state, [message, group]) => {
+    scan((state, message) => {
       switch (message.type) {
         case 'snapshot': return {
           productId: message.productId,
@@ -107,16 +106,14 @@ export const createOrderBookFeed = (source$: Subject<MessageEvent>) => {
         default: return state
       }
     }, { productId: null as KnownProduct | null, asks: [] as Levels, bids: [] as Levels }),
-    shareReplay({refCount: true, bufferSize: 1})
-  )
+  ))
 
-  sink$.subscribe()
+  sink$.connect()
 
   // Ensure latest state is emitted no more than every 200 milliseconds
-  return sink$.pipe(
-    sampleTime(200),
-    shareReplay({refCount: true, bufferSize: 1})
-  )
+  const out$ = sink$.pipe(sampleTime(200))
+
+  return out$
 }
 
-export const orderBookFeed$ = createOrderBookFeed(feedMessage$)
+export const orderBookFeed$ = createOrderBookFeed(feedMessage$, feedError$)
